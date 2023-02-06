@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS items;
+
+CREATE TABLE IF NOT EXISTS items (
+	id SERIAL PRIMARY KEY,
+	title text NOT NULL,
+	description TEXT NOT NULL,
+	pubDate TEXT NOT NULL,
+	url TEXT NOT NULL UNIQUE
+);
+
+SELECT * FROM items;
