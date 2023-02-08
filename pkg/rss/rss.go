@@ -27,6 +27,7 @@ type Item struct {
 	Link            string `xml:"link"`
 }
 
+// Возвращает массив раскодированных новостей
 func Parse(url string) ([]db.Post, error) {
 	resp, err := http.Get(url)
 	if err != nil {

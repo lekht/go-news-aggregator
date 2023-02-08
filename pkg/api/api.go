@@ -15,15 +15,18 @@ type API struct {
 	db *db.DB
 }
 
+// Получение ссылки на маршрутизатор
 func (api *API) Router() *mux.Router {
 	return api.r
 }
 
+// Регистрация методов в маршрутизаторе
 func (api *API) endpoints() {
 	api.r.HandleFunc("/news/{count}", api.itemsHandler).Methods(http.MethodGet, http.MethodOptions)
 	api.r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./webapp"))))
 }
 
+// Конструктор API
 func New(db *db.DB) *API {
 	api := API{}
 	api.db = db
@@ -32,6 +35,7 @@ func New(db *db.DB) *API {
 	return &api
 }
 
+// Метод получения записей из БД
 func (api *API) itemsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")

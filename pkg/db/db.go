@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// Пост из rss потока
 type Post struct {
 	ID          int
 	Title       string
@@ -17,10 +18,12 @@ type Post struct {
 	Url         string
 }
 
+// БД
 type DB struct {
 	pool *pgxpool.Pool
 }
 
+// Конструктор БД
 func New(ctx context.Context, connstr string) (*DB, error) {
 	dbpool, err := pgxpool.New(ctx, connstr)
 	if err != nil {
@@ -32,6 +35,7 @@ func New(ctx context.Context, connstr string) (*DB, error) {
 	return &db, nil
 }
 
+// Получение n новостей из БД
 func (db *DB) News(n int) ([]Post, error) {
 	rows, err := db.pool.Query(context.Background(), `SELECT * FROM items ORDER BY id DESC LIMIT $1`, n)
 	if err != nil {
@@ -42,19 +46,11 @@ func (db *DB) News(n int) ([]Post, error) {
 		log.Printf("CollectRows error: %v", err)
 		return nil, err
 	}
-	return items, nil
-	// for rows.Next() {
-	// 	var i Item
-	// 	err = rows.Scan(
-	// 		&i.ID,
-	// 		&i.Title,
-	// 		&i.Url,
-	// 		&i.PublicationDate,
-	// 		&i.Description,
-	// 	)
-	// }
+	return items, rows.Err()
+
 }
 
+// Записывает новости в БД
 func (db *DB) AddNews(items []Post) error {
 	if len(items) < 1 {
 		return errors.New("adding empty slice")
