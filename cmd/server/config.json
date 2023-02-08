@@ -1,7 +1,6 @@
 {
     "rss":[
-       "https://rssexport.rbc.ru/rbcnews/news/30/full.rss",
-       "https://habr.com/ru/rss/best/daily/?fl=ru"
+       "https://rssexport.rbc.ru/rbcnews/news/30/full.rss"
     ],
     "request_period": 5
  }

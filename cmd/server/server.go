@@ -21,11 +21,12 @@ type config struct {
 const connstr string = "postgres://postgres:password@server.domain/items"
 
 func main() {
+	// Инициализация БД
 	dbase, err := db.New(context.Background(), connstr)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	// Инициализация API
 	api := api.New(dbase)
 
 	b, err := os.ReadFile("./config.json")
@@ -37,6 +38,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Запуск парсинга rss-потоков новостных сайтов
 	chPost := make(chan []db.Post)
 	chErr := make(chan error)
 	go func() {
@@ -46,6 +49,7 @@ func main() {
 		time.Sleep(time.Minute * time.Duration(config.Period))
 	}()
 
+	// Записаь постов из канала в бд
 	go func() {
 		for posts := range chPost {
 			err = dbase.AddNews(posts)
@@ -55,18 +59,21 @@ func main() {
 		}
 	}()
 
+	// Обработка ошибок
 	go func() {
 		for err := range chErr {
 			log.Println("rss goroutine parsing error: ", err)
 		}
 	}()
 
-	err = http.ListenAndServe(":8080", api.Router())
+	// Запуск сервера
+	err = http.ListenAndServe("localhost:80", api.Router())
 	if err != nil {
 		panic(err)
 	}
 }
 
+// Чтение rss-потока и отправка раскодированных постов и ошибок в каналы.
 func parseUrl(url string, posts chan<- []db.Post, errs chan<- error) {
 	for {
 		feeds, err := rss.Parse(url)
