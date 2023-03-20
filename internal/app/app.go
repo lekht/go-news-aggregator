@@ -25,7 +25,6 @@ func Run(cfg *config.Config) {
 	parser := rss.New(ctx, &cfg.RSS, pg)
 	parser.Start(ctx)
 	api := api.New(&cfg.Server, pg)
-	// api.Start()
 	router := api.Router()
 	httpServer := server.New(router, server.Port(cfg.Server.Port))
 

@@ -14,7 +14,7 @@ func (api *API) itemsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		return
 	}
-	c := mux.Vars(r)["count"]
+	c := mux.Vars(r)["n"]
 	n, err := strconv.Atoi(c)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
