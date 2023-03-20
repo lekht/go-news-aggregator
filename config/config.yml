@@ -1,0 +1,13 @@
+app:
+  name: 'go-news'
+  version: '1.0.0'
+
+server:
+  port: 'localhost:80'
+
+postgres:
+  user: 'postgres'
+  password: 'password'
+  host: 'server.domain'
+  port: '5432'
+  db: 'items'

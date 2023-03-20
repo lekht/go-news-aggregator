@@ -2,7 +2,20 @@ module github.com/lekht/go-news-aggregator
 
 go 1.19
 
-require github.com/jackc/pgx/v5 v5.2.0
+require (
+	github.com/grokify/html-strip-tags-go v0.0.1
+	github.com/ilyakaznacheev/cleanenv v1.4.2
+	github.com/jackc/pgx/v5 v5.2.0
+)
+
+require (
+	github.com/BurntSushi/toml v1.1.0 // indirect
+	github.com/joho/godotenv v1.4.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
+	github.com/rogpeppe/go-internal v1.9.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
+)
 
 require (
 	github.com/gorilla/mux v1.8.0
