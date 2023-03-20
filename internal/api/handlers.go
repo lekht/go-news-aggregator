@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -10,25 +11,21 @@ import (
 
 // Метод получения записей из БД
 func (api *API) itemsHandler(w http.ResponseWriter, r *http.Request) {
-	// w.Header().Set("Content-Type", "application/json")
-	// w.Header().Set("Access-Control-Allow-Origin", "*")
-	nn := mux.Vars(r)["n"]
-	n, err := strconv.Atoi(nn)
-	if err != nil {
-		api.writeResponseError(w, err, http.StatusBadRequest)
+	if r.Method == http.MethodOptions {
 		return
 	}
-
-	news, err := api.db.News(n)
+	c := mux.Vars(r)["count"]
+	n, err := strconv.Atoi(c)
 	if err != nil {
-		api.writeResponseError(w, err, http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	w.Header().Add("Code", strconv.Itoa(http.StatusOK))
+	posts, err := api.db.News(n)
+	if err != nil {
+		log.Printf("db getting data error: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
-	_ = json.NewEncoder(w).Encode(news)
+	json.NewEncoder(w).Encode(posts)
 }

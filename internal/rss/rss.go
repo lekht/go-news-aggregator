@@ -41,77 +41,42 @@ func New(ctx context.Context, cfg *config.RSS, db storage) *Parser {
 		errorCh: make(chan error),
 		postCh:  make(chan []*postgres.Post),
 	}
-	p.start(ctx)
+	// p.start(ctx)
 
 	return p
 }
 
 // start worker
-func (p *Parser) start(ctx context.Context) {
-	// go func( context.Context) {
-	// 	for _, urls := range p.links {
-	// 		go parseUrl(ctx, urls, p.postCh, p.errorCh)
-	// 	}
-	// }(ctx)
-	// // Запись постов из канала в бд
-	// go func(ctx context.Context) {
-	// 	for {
-	// 		select {
-	// 		case <-ctx.Done():
-	// 			return
-	// 		case posts := <-p.postCh:
-	// 			err := p.db.AddNews(posts)
-	// 			if err != nil {
-	// 				log.Println(fmt.Errorf("rss - start - storage error: %w", err))
-	// 			}
-	// 		}
-	// 	}
-	// }(ctx)
-
-	// // Обработка ошибок
-	// go func(ctx context.Context) {
-	// 	for {
-	// 		select {
-	// 		case <-ctx.Done():
-	// 			return
-	// 		case err := <-p.errorCh:
-	// 			log.Println(fmt.Errorf("rss - start - parser error: %w", err))
-	// 		}
-	// 	}
-	// }(ctx)
-
-	// for {
-	// 	select {
-	// 	case <-ctx.Done():
-	// 		return
-	// 	case <-time.After(time.Duration(p.period)):
-	// 		go func(ctx context.Context) {
-	// 			for _, urls := range p.links {
-	// 				go parseUrl(ctx, urls, p.postCh, p.errorCh)
-	// 			}
-	// 		}(ctx)
-	// 	}
-	// }
+func (p *Parser) Start(ctx context.Context) {
 	go func() {
-		for _, urls := range p.links {
-			go parseUrl(urls, p)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				for _, urls := range p.links {
+					go parseUrl(urls, p)
+				}
+				time.Sleep(time.Minute * time.Duration(p.period))
+			}
 		}
-		time.Sleep(time.Minute * time.Duration(p.period))
 	}()
 
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case posts := <-p.postCh:
-			err := p.db.AddNews(posts)
-			if err != nil {
-				log.Println(fmt.Errorf("rss - start - storage error: %w", err))
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case posts := <-p.postCh:
+				err := p.db.AddNews(posts)
+				if err != nil {
+					log.Println(fmt.Errorf("rss - start - storage error: %w", err))
+				}
+			case err := <-p.errorCh:
+				log.Println(fmt.Errorf("rss - start - parser error: %w", err))
 			}
-		case err := <-p.errorCh:
-			log.Println(fmt.Errorf("rss - start - parser error: %w", err))
 		}
-	}
+	}()
 }
 
 // Возвращает массив раскодированных новостей
@@ -135,10 +100,10 @@ func Parse(url string) ([]*postgres.Post, error) {
 		post.Title = item.Title
 		post.Content = item.Content
 		post.Content = strip.StripTags(post.Content)
-		item.PubDate = strings.ReplaceAll(item.PubDate, ",", "")
-		t, err := time.Parse("Mon 2 Jan 2006 15:04:05 -0700", item.PubDate)
+		item.PubTime = strings.ReplaceAll(item.PubTime, ",", "")
+		t, err := time.Parse("Mon 2 Jan 2006 15:04:05 -0700", item.PubTime)
 		if err != nil {
-			t, err = time.Parse("Mon 2 Jan 2006 15:04:05 GMT", item.PubDate)
+			t, err = time.Parse("Mon 2 Jan 2006 15:04:05 GMT", item.PubTime)
 		}
 		if err == nil {
 			post.PubTime = t.Unix()
@@ -152,6 +117,7 @@ func Parse(url string) ([]*postgres.Post, error) {
 
 // Чтение rss-потока и отправка раскодированных постов и ошибок в каналы.
 func parseUrl(url string, p *Parser) {
+	log.Println("парсим сайт")
 	for {
 		feeds, err := Parse(url)
 		if err != nil {

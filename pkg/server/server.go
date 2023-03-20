@@ -2,9 +2,11 @@ package server
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -17,11 +19,11 @@ type Server struct {
 	shutdownTimeout time.Duration
 }
 
-func New(handler http.Handler, opts ...Option) *Server {
+func New(r *mux.Router, opts ...Option) *Server {
 	httpServer := &http.Server{
-		Handler:      handler,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		Handler:      r,
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
 	}
 
 	s := &Server{
@@ -42,9 +44,10 @@ func New(handler http.Handler, opts ...Option) *Server {
 
 func (s *Server) start() {
 	go func() {
+		log.Printf("сервер запущен на адресе: %s", s.server.Addr)
+		defer log.Println("сервер упал")
 		s.notify <- s.server.ListenAndServe()
 		close(s.notify)
-		defer fmt.Println("сервер упал")
 	}()
 }
 

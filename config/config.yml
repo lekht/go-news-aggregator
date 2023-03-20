@@ -3,7 +3,7 @@ app:
   version: '1.0.0'
 
 server:
-  port: 'localhost:80'
+  port: '80'
 
 postgres:
   user: 'postgres'

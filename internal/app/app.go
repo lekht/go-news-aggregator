@@ -10,6 +10,8 @@ import (
 
 	"github.com/lekht/go-news-aggregator/config"
 	"github.com/lekht/go-news-aggregator/internal/api"
+	"github.com/lekht/go-news-aggregator/internal/rss"
+	"github.com/lekht/go-news-aggregator/pkg/server"
 	"github.com/lekht/go-news-aggregator/pkg/storage/postgres"
 )
 
@@ -20,11 +22,12 @@ func Run(cfg *config.Config) {
 		log.Fatalf("app - Run - postgres.New: %v", err)
 	}
 	defer pg.Close()
-	// rss.New(ctx, &cfg.RSS, pg)
+	parser := rss.New(ctx, &cfg.RSS, pg)
+	parser.Start(ctx)
 	api := api.New(&cfg.Server, pg)
-	api.Start()
-	// router := api.Router()
-	// httpServer := server.New(router, server.Port(cfg.Server.Port))
+	// api.Start()
+	router := api.Router()
+	httpServer := server.New(router, server.Port(cfg.Server.Port))
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
@@ -32,11 +35,11 @@ func Run(cfg *config.Config) {
 	select {
 	case s := <-interrupt:
 		log.Println(fmt.Errorf("app - Run - signal: " + s.String()))
-	case err = <-api.Notify():
+	case err = <-httpServer.Notify():
 		log.Println(fmt.Errorf("app - Run - server.Notify: %w", err))
 	}
 
-	err = api.Shutdown()
+	err = httpServer.Shutdown()
 	if err != nil {
 		log.Println(fmt.Errorf("app - Run - server.Shutdown: %w", err))
 	}

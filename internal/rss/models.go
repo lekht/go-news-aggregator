@@ -8,15 +8,12 @@ type RSS struct {
 }
 
 type Channel struct {
-	Title       string `xml:"title"`
-	Description string `xml:"description"`
-	Link        string `xml:"link"`
-	Items       []Item `xml:"item"`
+	Items []Item `xml:"item"`
 }
 
 type Item struct {
 	Title   string `xml:"title"`
 	Content string `xml:"description"`
-	PubDate string `xml:"pubDate"`
+	PubTime string `xml:"pubDate"`
 	Link    string `xml:"link"`
 }
