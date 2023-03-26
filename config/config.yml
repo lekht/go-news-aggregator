@@ -3,11 +3,11 @@ app:
   version: '1.0.0'
 
 server:
-  port: '80'
+  port: '8081'
 
 postgres:
   user: 'postgres'
   password: 'password'
   host: 'server.domain'
   port: '5432'
-  db: 'items'
+  db: 'news'

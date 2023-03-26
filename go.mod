@@ -3,6 +3,7 @@ module github.com/lekht/go-news-aggregator
 go 1.19
 
 require (
+	github.com/google/uuid v1.3.0
 	github.com/grokify/html-strip-tags-go v0.0.1
 	github.com/ilyakaznacheev/cleanenv v1.4.2
 	github.com/jackc/pgx/v5 v5.2.0

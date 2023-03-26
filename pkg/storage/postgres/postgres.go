@@ -28,6 +28,49 @@ func New(ctx context.Context, cfg *config.PG) (*Storage, error) {
 	return &db, nil
 }
 
+func (db *Storage) NewsPageFilter(page int, filter string, newsPerPage int) ([]*Post, error) {
+	skip := (page - 1) * newsPerPage
+	rows, err := db.pool.Query(context.Background(), `
+		SELECT 
+			id,
+			title,
+			content,
+			pubTime,
+			link
+		FROM news.items
+		WHERE title ILIKE '%`+filter+`%'
+		ORDER BY pubTime DESC
+		LIMIT $1
+		OFFSET $2;`,
+		newsPerPage,
+		skip,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []*Post
+	for rows.Next() {
+		var post Post
+
+		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.PubTime, &post.Link)
+		if err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, &post)
+	}
+
+	if err = rows.Err(); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return posts, nil
+}
+
 // Получение n новостей из БД
 func (db *Storage) News(n int) ([]*Post, error) {
 	rows, err := db.pool.Query(context.Background(), `
@@ -37,7 +80,7 @@ func (db *Storage) News(n int) ([]*Post, error) {
 			content,
 			pubTime,
 			link
-		FROM items
+		FROM news.items
 		ORDER BY pubTime DESC
 		LIMIT $1;`,
 		n,
@@ -81,7 +124,7 @@ func (db *Storage) AddNews(posts []*Post) error {
 	}
 	defer tx.Rollback(context.Background())
 	for _, p := range posts {
-		_, err := tx.Exec(context.Background(), `INSERT INTO items (title, content, pubTime, link)
+		_, err := tx.Exec(context.Background(), `INSERT INTO news.items (title, content, pubTime, link)
 			VALUES ($1,$2,$3,$4) 
 			RETURNING id`,
 			&p.Title,
@@ -95,6 +138,29 @@ func (db *Storage) AddNews(posts []*Post) error {
 	}
 	tx.Commit(context.Background())
 	return nil
+}
+
+func (db *Storage) NewByID(id int) (*Post, error) {
+	row := db.pool.QueryRow(context.Background(), `
+		SELECT 
+			id,
+			title,
+			content,
+			pubTime,
+			link
+		FROM news.items
+		WHERE id = $1;
+		`,
+		id,
+	)
+
+	var p Post
+	err := row.Scan(&p.ID, &p.Title, &p.Content, &p.PubTime, &p.Link)
+	if err != nil {
+		return nil, err
+	}
+
+	return &p, nil
 }
 
 func (s *Storage) Close() {
