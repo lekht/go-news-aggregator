@@ -62,8 +62,6 @@ func (a *API) filterAndPage(w http.ResponseWriter, r *http.Request) {
 		}
 		page = i
 	}
-	log.Printf("api - filterPage - gotten params: %d, %s", page, filter)
-
 	posts, err := a.db.NewsPageFilter(page, filter, newsPerPage)
 	if err != nil {
 		log.Printf("api - news - db getting data error: %v", err)
@@ -90,12 +88,10 @@ func (a *API) filterAndPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) newByID(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	idValue := q.Get("id")
-	id, err := strconv.Atoi(idValue)
+	c := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(c)
 	if err != nil {
-		log.Printf("api - newByID - convertig id error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	p, err := a.db.NewByID(id)
