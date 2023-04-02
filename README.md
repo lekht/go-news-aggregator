@@ -2,9 +2,9 @@
 Это сервис осуществляет парсинг RSS-лент новостных сайтов в формате `.xml`. 
 
 Он работает в составе приложения со следующими микросервисами:
-- [news-gateway]() - входная точка приложения
-- [news-comments-service]() - сервис комментариев
-- [news-formatter-service]() - сервис проверки комментариев
+- [news-gateway](https://github.com/lekht/news-gateway) - входная точка приложения
+- [news-comments-service](https://github.com/lekht/news-comments-service) - сервис комментариев
+- [news-formatter-service](https://github.com/lekht/news-formatter-service) - сервис проверки комментариев
 
 <br />
 
